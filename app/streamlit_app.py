@@ -246,61 +246,39 @@ with left:
         st.markdown("### 01 / Sample Acquisition")
         st.caption("Select a microscopy sample for analysis.")
 
+        # Check if local test data exists-->safe for Streamlit Cloud environments
+        test_dir = ROOT / "data" / "processed" / "test"
+        has_test_data = test_dir.exists() and any(test_dir.glob("*/*.jpg"))
+
+        # Default to file uploader if test dataset folder is not present in the cloud
+        default_mode_idx = 0 if has_test_data else 1
+        
         mode = st.radio(
             "Input source",
             ["Test dataset", "Upload image"],
+            index=default_mode_idx,
             horizontal=True
         )
 
-        if mode == "Test dataset":
-            test_dir = ROOT / "data" / "processed" / "test"
+        if mode == "Test dataset" and has_test_data:
             sample_files = sorted(test_dir.glob("*/*.jpg"))
-
-            if sample_files:
-                choice = st.selectbox(
-                    "Select sample",
-                    sample_files,
-                    format_func=lambda p: f"{p.parent.name} / {p.name}"
-                )
-                selected_image = Image.open(choice).convert("RGB")
-                true_label_hint = choice.parent.name
-            else:
-                st.info("No test images found. Try uploading an image.")
-
+            choice = st.selectbox(
+                "Select sample",
+                sample_files,
+                format_func=lambda p: f"{p.parent.name} / {p.name}"
+            )
+            selected_image = Image.open(choice).convert("RGB")
+            true_label_hint = choice.parent.name
         else:
+            if mode == "Test dataset" and not has_test_data:
+                st.info("Test dataset not found in cloud environment. Please upload an image.")
+            
             uploaded = st.file_uploader(
                 "Upload microscope image",
                 type=["jpg", "jpeg", "png"]
             )
             if uploaded:
                 selected_image = Image.open(uploaded).convert("RGB")
-
-        if selected_image is not None:
-            st.image(
-                selected_image,
-                caption="Microscopic field of view",
-                use_container_width=True
-            )
-
-            focus_var = compute_focus_score(selected_image)
-
-            if focus_var < FOCUS_MIN:
-                st.warning(f"Low optical sharpness: {focus_var:.1f}")
-            else:
-                st.success(f"Optical focus acceptable: {focus_var:.1f}")
-
-    with st.container(border=True):
-        st.markdown("### 02 / Quality Assessment")
-        st.caption("Optical image quality control")
-
-        if focus_var is not None:
-            st.metric("Laplacian Variance", f"{focus_var:.1f}")
-            st.caption(
-                "Higher values generally indicate sharper images. "
-                "This threshold is a heuristic, not a universal optical standard."
-            )
-        else:
-            st.info("Awaiting sample acquisition.")
 
 # Results
 with right:
