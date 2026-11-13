@@ -6,6 +6,8 @@ AirNox is a research-driven computer vision prototype exploring the classificati
 
 While academic and industrial research in automated palynology already exists, AirNox represents my personal engineering take on the problem: an attempt to bridge software classification with practical, micro-environmental exposure monitoring.
 
+Hosted on : https://airnox.streamlit.app/
+
 ## Why I Started AirNox
 
 As someone who personally suffers from pollen and other bioaerosol allergies, I have experienced how unpredictable pollen exposure can be and how significantly it can affect everyday life. This motivated me to explore whether technology could make environmental allergen detection more accessible.
