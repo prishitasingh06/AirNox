@@ -1,0 +1,30 @@
+
+# Python virtual environments
+.venv/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# macOS system files
+.DS_Store
+
+# Local IDE files
+.vscode/
+
+# Model checkpoints
+*.pt
+*.pth
+
+# Environment variables and secrets
+.env
+
+# Datasets and image artifacts
+data/raw/
+data/processed/
+*.jpg
+*.png
+*.jpeg

@@ -1,0 +1,20 @@
+{
+  "random_seed": 42,
+  "image_size": [
+    224,
+    224
+  ],
+  "num_classes": 5,
+  "classes": [
+    "benign_dust",
+    "birch_pollen",
+    "grass_pollen",
+    "mold_spores",
+    "ragweed_pollen"
+  ],
+  "counts": {
+    "train": 280,
+    "val": 60,
+    "test": 60
+  }
+}
