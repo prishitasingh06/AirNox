@@ -146,41 +146,12 @@ def compute_focus_score(img):
     )
     return float(cv2.Laplacian(gray, cv2.CV_64F).var())
 
-
-#@st.cache_resource
-# def load_trained_model():
-#     """
-#     Loads the trained ResNet classifier from the saved checkpoint.Restores model weights and class labels, then switches the model to evaluation mode for inference.
-
-#     Returns:
-#         model: Loaded PyTorch classification model.
-#         classes: List of prediction class labels.
-#     """
-#     if not CHECKPOINT.exists():
-#         return None, None
-#     ckpt = torch.load(CHECKPOINT, map_location="cpu")
-#     classes = ckpt["classes"]
-#     model = build_classifier(
-#         arch=ckpt["arch"], num_classes=len(classes), pretrained=False
-#     )
-#     model.load_state_dict(ckpt["state_dict"])
-#     model.eval()
-#     return model, classes
 @st.cache_resource
 def load_trained_model():
-    # Diagnostic prints for Streamlit Cloud debugging
-    st.write(f"__File location__: {Path(__file__).resolve()}")
-    st.write(f"__Root directory__: {ROOT}")
-    st.write(f"__Target Checkpoint Path__: {CHECKPOINT}")
-    st.write(f"__Does Checkpoint Exist?__: {CHECKPOINT.exists()}")
-    
-    # Check what files actually exist in models/checkpoints if directory exists
-    chk_dir = ROOT / "models" / "checkpoints"
-    if chk_dir.exists():
-        st.write(f"Files in checkpoints folder: {[f.name for f in chk_dir.glob('*')]} ")
-    else:
-        st.write("The models/checkpoints directory does not exist in this environment.")
-
+    """
+    Loads the trained ResNet classifier from the saved checkpoint.
+    Restores model weights and class labels, then switches the model to evaluation mode for inference.
+    """
     if not CHECKPOINT.exists():
         return None, None
         
@@ -274,9 +245,18 @@ with left:
 
         # Check if local test data exists-->safe for Streamlit Cloud environments
         test_dir = ROOT / "data" / "processed" / "test"
-        has_test_data = test_dir.exists() and any(test_dir.glob("*/*.jpg"))
+        assets_dir = ROOT / "assets"
 
-        # Default to file uploader if test dataset folder is not present in the cloud
+        sample_files = []
+        if test_dir.exists() and any(test_dir.glob("*/*.jpg")):
+            sample_files = sorted(test_dir.glob("*/*.jpg"))
+            has_test_data = True
+        elif assets_dir.exists() and any(assets_dir.glob("**/*.jpg")):
+            sample_files = sorted(assets_dir.glob("**/*.jpg"))
+            has_test_data = True
+        else:
+            has_test_data = False
+
         default_mode_idx = 0 if has_test_data else 1
         
         mode = st.radio(
@@ -287,17 +267,16 @@ with left:
         )
 
         if mode == "Test dataset" and has_test_data:
-            sample_files = sorted(test_dir.glob("*/*.jpg"))
             choice = st.selectbox(
                 "Select sample",
                 sample_files,
-                format_func=lambda p: f"{p.parent.name} / {p.name}"
+                format_func=lambda p: f"{p.parent.name} / {p.name}" if p.parent.name != "assets" else f"Demo Sample / {p.name}"
             )
             selected_image = Image.open(choice).convert("RGB")
-            true_label_hint = choice.parent.name
+            true_label_hint = choice.parent.name if choice.parent.name != "assets" else "Demo Sample"
         else:
             if mode == "Test dataset" and not has_test_data:
-                st.info("Test dataset not found in cloud environment. Please upload an image.")
+                st.info("No demo samples found in cloud environment. Please upload an image.")
             
             uploaded = st.file_uploader(
                 "Upload microscope image",
